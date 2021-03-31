@@ -1,13 +1,12 @@
 from time import sleep_ms
 from machine import Pin, SPI
 from mfrc522 import MFRC522
-import urequests
 import machine
 import ubinascii
-
-api_host = "http://URL/"
+import ws as WS
 
 D_ID = ubinascii.hexlify(machine.unique_id()).decode('utf-8')
+
 
 ## Colin's Configuratie
 if D_ID == "9c9c1fc88ea8":
@@ -20,6 +19,8 @@ if D_ID == "9c9c1fc88ea8":
     spi = SPI(baudrate=100000, polarity=0, phase=0, sck=sck, mosi=mosi, miso=miso)
 
     sda = Pin(21, Pin.OUT)
+    ledW = Pin(2, Pin.OUT)
+    ledW.value(0)
 
 if D_ID == "caca1300":
     sck = Pin(14, Pin.OUT)
@@ -28,34 +29,44 @@ if D_ID == "caca1300":
     spi = SPI(baudrate=100000, polarity=0, phase=0, sck=sck, mosi=mosi, miso=miso)
 
     sda = Pin(15, Pin.OUT)
+    ledW = Pin(16, Pin.OUT)
+    ledW.value(1)
 
 
-def send_online():
+def send_online(s):
     """
     Stuurt een request naar de server/hub met het ID van de hardware.
     Hiermee weet de server dat de reader online is gekomen.
     """
-    data = [{"esp_id": D_ID}]
+    data = [{"type": "online", "esp_id": D_ID}]
     try:
-        urequests.request("GET", api_host+"online", json=data,
-                          headers={'content-type': 'application/json'})
-    except:
+        WS.send_message(str(data), s)
+        try:
+            data = s.recv(1024)
+            message = data.decode("utf-8")
+            if message == "SOCKET_CONNECTED":
+                if D_ID == "caca1300":
+                    ledW.value(0)
+                if D_ID == "9c9c1fc88ea8":
+                    ledW.value(1)
+        except Exception as e:
+            print(e)
+    except Exception as e:
         # Backup server?
-        print("error?")
+        print(e)
 
 
-def online_check():
+def online_check(s):
     """
     Stuurt een request/ping naar de server/hub met het ID van de hardware.
     Hierdoor weet de server dat de reader nogsteeds online is.
     """
-    data = [{"esp_id": D_ID}]
+    data = [{"type": "online_check", "esp_id": D_ID}]
     try:
-        urequests.request("GET", api_host+"online_check", json=data,
-                          headers={'content-type': 'application/json'})
-    except:
+        WS.send_message(str(data), s)
+    except Exception as e:
         # Backup server?
-        print("error?")
+        print(e)
 
 
 def do_read():
@@ -63,13 +74,19 @@ def do_read():
     Deze functie wacht voor een langskomende tag. Zodra een tag wordt gescanned, wordt deze informatie doorgestuurd naar: "http://192.168.2.38:5000/hit".
     Daarnaast gaat er een groen lampje aan zodra een goede tag wordt gelezen.
     """
+
+    conne = WS.connect()
+    send_online(conne)
+    sleep_ms(1000)
+
     if D_ID == "9c9c1fc88ea8":
         ledR.value(1)
+        ledG.value(0)
     c = 0
     try:
         while True:
-            if c == 5:
-                online_check()
+            if c == 3:
+                online_check(conne)
                 c = 0
             else:
                 c += 1
@@ -95,22 +112,15 @@ def do_read():
                         if rdr.auth(rdr.AUTHENT1A, 8, key, raw_uid) == rdr.OK:
                             print("Address 8 data: %s" % rdr.read(8))
 
-                            data = [{"tag_id": str(rdr.read(8)), "esp_id": D_ID}]
-                            try:
-                                urequests.request("GET", api_host+"hit", json=data, headers = {'content-type': 'application/json'})
-                            except:
-                                print("error?")
+                            data = [{"type": "read", "tag_id": str(rdr.read(8)), "esp_id": D_ID}]
+                            WS.send_message(str(data), conne)
+                            WS.receive_message(conne)
 
-                            online_check()
+                            online_check(conne)
 
                             rdr.stop_crypto1()
-                            if D_ID == "9c9c1fc88ea8":
-                                ledR.value(0)
-                                ledG.value(1)
                             sleep_ms(1000)
-                            if D_ID == "9c9c1fc88ea8":
-                                ledR.value(1)
-                                ledG.value(0)
+
                         else:
                             print("Authentication error")
                     else:
@@ -121,7 +131,3 @@ def do_read():
             ledR.value(0)
             ledG.value(1)
         print("Bye")
-
-
-
-
