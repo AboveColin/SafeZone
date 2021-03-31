@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="  crossorigin="anonymous"></script>      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+      <script src="{{ url_for('static', filename='admin.js' )}}"></script>
+      <!-- Google Font -->
+       <link rel="preconnect" href="https://fonts.gstatic.com">
+       <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+      <title>Admin Dashboard</title>
+   </head>
+   <style>
+      body {
+      font-family: 'Roboto', sans-serif;
+      }
+   </style>
+   <body>
+      <nav class="navbar navbar-dark bg-dark">
+         <a class="navbar-brand" href="#">Admin Dashboard</a>
+         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+         <span class="navbar-toggler-icon"></span>
+         </button>
+         <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+               <li class="nav-item active">
+                  <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+               </li>
+               <li class="nav-item">
+                  <a class="nav-link" href="#">Features</a>
+               </li>
+               <li class="nav-item">
+                  <a class="nav-link" href="#">Pricing</a>
+               </li>
+               <li class="nav-item">
+                  <a class="nav-link disabled" href="#">Disabled</a>
+               </li>
+            </ul>
+         </div>
+      </nav>
+      <div class="jumbotron">
+      <div class="container">
+         <div class="row">
+            <div class="col-sm">
+               <h2> <b>Clients</b></h2>
+               <ul>
+                  {% for client in clients %}
+                  <li>
+                     <b>{{client[0]}}</b>
+                     <ul>
+                        <li id="tag_id_{{client[1]}}"><b>Tag nr: </b> {{client[1]}}</li>
+                        <li ><b>Laatste hit: </b> <data id="last_hit_{{client[1]}}">{{client[2]}} </data></li>
+                     </ul>
+                  </li>
+                  <br>
+                  {% endfor %}
+               </ul>
+            </div>
+
+            <div class="col-sm">
+                <h2> <b>Readers</b></h2>
+               <ul>
+                  {% for online in online_list %}
+                  <li>{{online}} </li>
+                  {% endfor %}
+                  {% for reader in admin_reader_list %}
+                  <li>
+                     <b>{{reader[0]}} {% if reader[2] == "online" %} <span id="onoff_{{reader[0]}}" class="badge badge-success">Online</span> {% else %}<span class="badge badge-danger">Offline</span> {% endif %} </b>
+                     <ul>
+                        <li ><b>Laatst online: </b> <data id="last_hit_{{reader[0]}}"> {{reader[1]}} </data></li>
+                     </ul>
+                  </li>
+                  <br>
+                  {% endfor %}
+               </ul>
+            </div>
+         </div>
+      </div>
+      </div>
+   </body>
+<script>
+   function get_new_data() {
+
+    var url = '{{ url_for('return_data') }}';
+
+    fetch(url)
+        .then(res => res.json())
+        .then((out) => {
+            i = 0
+            {% for reader in admin_reader_list %}
+            document.getElementById("last_hit_{{reader[0]}}").textContent = out[0][i][1]
+            if (out[0][i][2] == "online") {
+                console.log("online")
+                oo = document.getElementById("onoff_{{reader[0]}}")
+                oo.textContent = "Online"
+                oo.classList.remove('badge-danger');
+                oo.classList.add('badge-success');
+            } else {
+                console.log("offline")
+                oo = document.getElementById("onoff_{{reader[0]}}")
+                oo.textContent = "Offline"
+                oo.classList.remove('badge-success');
+                oo.classList.add('badge-danger');
+            }
+            i++;
+            {% endfor %}
+            i = 0
+            {% for client in clients %}
+               document.getElementById("last_hit_{{client[1]}}").textContent = out[1][i][2] + " ("+ out[1][i][3] +")"
+               i++;
+            {% endfor %}
+
+      })
+        .catch(err => {
+            throw err
+
+      });
+    setTimeout(get_new_data, 1000);
+}
+
+get_new_data();
+</script>
+</html>
