@@ -7,6 +7,7 @@ spi = SPI(baudrate=100000, polarity=0, phase=0, sck=sck, mosi=mosi, miso=miso)
 
 sda = Pin(21, Pin.OUT)
 
+
 def do_write(c):
 	"""
 	Schrijft ID naar TAG
