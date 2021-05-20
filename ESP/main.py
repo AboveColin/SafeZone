@@ -1,8 +1,5 @@
-from machine import Pin
 import machine
 import read as read
-import ubinascii
-import ws as WS
 
 
 def do_connect():
