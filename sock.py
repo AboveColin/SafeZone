@@ -5,7 +5,8 @@ import requests
 import json
 from SafeZone.models import log
 from SafeZone.logs import logger
-
+import urllib3
+urllib3.disable_warnings()
 
 def process_data(data, clientsocket, addr):
     """Deze functie verwerkt alle binnenkomende data en zet door naar de goede API call/endpoint
@@ -18,7 +19,7 @@ def process_data(data, clientsocket, addr):
         type = data[0]['type']
         
         if type == 'read':
-            requests.get("http://127.0.0.1:5000/api/hit", json=data, headers = {'content-type': 'application/json'})
+            requests.get("https://127.0.0.1:5000/api/hit", json=data, headers = {'content-type': 'application/json'}, verify=False)
             
             command = "READ_SUCCESSFUL"
             clientsocket.send(command.encode("utf-8"))
@@ -26,7 +27,7 @@ def process_data(data, clientsocket, addr):
             
         
         elif type == 'online':
-            requests.get("http://127.0.0.1:5000/api/online", json=data, headers = {'content-type': 'application/json'})
+            requests.get("https://127.0.0.1:5000/api/online", json=data, headers = {'content-type': 'application/json'}, verify=False)
             
             command = "SOCKET_CONNECTED"
             clientsocket.send(command.encode("utf-8"))
@@ -34,7 +35,7 @@ def process_data(data, clientsocket, addr):
             
         
         elif type == 'online_check':
-            requests.get("http://127.0.0.1:5000/api/online_check", json=data, headers = {'content-type': 'application/json'})
+            requests.get("https://127.0.0.1:5000/api/online_check", json=data, headers = {'content-type': 'application/json'}, verify=False)
     
     except Exception as e:
         logger.warning(e)
