@@ -1,9 +1,11 @@
 #!/usr/bin/python
 import sqlite3
 from sqlite3 import Error
-from logs import logger
+from SafeZone.logs import logger
 
-db_path = r"C:\Shares\School\Vakken\p3\Project\API\db\Project.db"
+
+db_path = r"C:\Shares\School\Vakken\p3\Project\SafeZone\db\Project.db"
+
 
 def create_connection(db_file):
     global conn
@@ -103,3 +105,4 @@ def get_last_hit(client_id):
     query_result = cur.fetchone()
     conn.close()
     return [query_result[0], query_result[1]]
+

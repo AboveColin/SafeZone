@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from datetime import datetime, timedelta
-import db as DB
+import SafeZone.db as DB
 
 def get_current_timestamp():
     """Returns the current timestamp"""

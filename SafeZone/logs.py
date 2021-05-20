@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import logging
 from colorlog import ColoredFormatter
 

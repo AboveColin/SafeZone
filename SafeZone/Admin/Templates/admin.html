@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="jumbotron">
+   <div class="container">
+      <div class="row">
+         <div class="col-sm">
+            
+            <div class="card text-center">
+               <div class="card-header">
+                  <b>Clients</b>
+               </div>
+               {% for client in clients %}
+               <div class="card-body">
+                  
+                 <h5 class="card-title">{{client[0]}}</h5>
+                 <div class="container">
+                  <div class="row">
+                    <div class="col-sm">
+                     <p class="card-text" id="tag_id_{{client[1]}}"><b>Tag nr: </b></p><p>{{client[1]}}</p>
+                    </div>
+                    <div class="col-sm">
+                     <b>Laatste hit: </b> </p><p><data id="last_hit_{{client[1]}}">{{client[2]}} </data>
+                    </div>
+                  </div>
+                </div>
+                 
+                 
+                 <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+                 <hr>
+               </div>
+               {% endfor %}
+             </div>
+             
+         </div>
+
+         <div class="col-sm">
+            <div class="card text-center">
+               <div class="card-header">
+                  <b>Readers</b>
+               </div>
+               {% for reader in admin_reader_list %}
+               <div class="card-body">
+                 <h5 class="card-title">                  <b>
+                  {{reader[0]}} {% if reader[2] == "online" %} 
+                  <span id="onoff_{{reader[0]}}" class="badge rounded-pill bg-success">Online</span> 
+                     {% else %}
+                     <span id="onoff_{{reader[0]}}" class="badge rounded-pill bg-danger">Offline</span> 
+                     {% endif %}
+                  </b></h5>
+                  <b>Laatst online: </b> <data id="last_hit_{{reader[0]}}"> {{reader[1]}} </data>
+                 <!-- <a href="#" class="btn btn-primary">Go somewhere</a> -->
+               </div>
+               {% endfor %}
+             </div>
+            <!-- <h2> <b>Readers</b></h2>
+            <ul>
+               {% for online in online_list %}
+               <li>{{online}} </li>
+               {% endfor %}
+               {% for reader in admin_reader_list %}
+               <li>
+                  <b>
+                     {{reader[0]}} {% if reader[2] == "online" %} 
+                     <span id="onoff_{{reader[0]}}" class="badge rounded-pill bg-success">Online</span> 
+                        {% else %}
+                        <span class="badge rounded-pill badge-danger">Offline</span> 
+                        {% endif %}
+                     </b>
+                  <ul>
+                     <li><b>Laatst online: </b> <data id="last_hit_{{reader[0]}}"> {{reader[1]}} </data></li>
+                  </ul>
+               </li>
+               <br>
+               {% endfor %}
+            </ul> -->
+         </div>
+      </div>
+   </div>
+</div>
+<script>
+   function get_new_data() {
+
+      var url = '{{ url_for('api.return_data') }}';
+
+      fetch(url)
+         .then(res => res.json())
+         .then((out) => {
+            i = 0 {% for reader in admin_reader_list %}
+            document.getElementById("last_hit_{{reader[0]}}").textContent = out[0][i][1]
+            if (out[0][i][2] == "online") {
+               oo = document.getElementById("onoff_{{reader[0]}}")
+               oo.textContent = "Online"
+               oo.classList.remove('bg-danger');
+               oo.classList.add('bg-success');
+            } else {
+               oo = document.getElementById("onoff_{{reader[0]}}")
+               oo.textContent = "Offline"
+               oo.classList.remove('bg-success');
+               oo.classList.add('bg-danger');
+            }
+            i++; {% endfor %}
+            i = 0 {% for client in clients %}
+            document.getElementById("last_hit_{{client[1]}}").textContent = out[1][i][2] + " (" + out[1][i][3] + ")"
+            i++; {% endfor %}
+
+         })
+         .catch(err => {
+            throw err
+
+         });
+      setTimeout(get_new_data, 1000);
+   }
+
+   get_new_data();
+</script>
+{% endblock %}

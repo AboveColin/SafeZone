@@ -3,12 +3,12 @@ import socket
 import threading
 import requests
 import json
-from models import log
-from logs import logger
+from SafeZone.models import log
+from SafeZone.logs import logger
 
 
 def process_data(data, clientsocket, addr):
-    """Deze functie processed alle binnenkomende data en zet door naar de goede API call/endpoint
+    """Deze functie verwerkt alle binnenkomende data en zet door naar de goede API call/endpoint
     Parameters:
      - Cliensocket: huidige socket, waarmee de ESP is verbonden.
      - Addr: IP addr van de ESP
@@ -18,7 +18,7 @@ def process_data(data, clientsocket, addr):
         type = data[0]['type']
         
         if type == 'read':
-            requests.get("http://127.0.0.1:5000/hit", json=data, headers = {'content-type': 'application/json'})
+            requests.get("http://127.0.0.1:5000/api/hit", json=data, headers = {'content-type': 'application/json'})
             
             command = "READ_SUCCESSFUL"
             clientsocket.send(command.encode("utf-8"))
@@ -26,7 +26,7 @@ def process_data(data, clientsocket, addr):
             
         
         elif type == 'online':
-            requests.get("http://127.0.0.1:5000/online", json=data, headers = {'content-type': 'application/json'})
+            requests.get("http://127.0.0.1:5000/api/online", json=data, headers = {'content-type': 'application/json'})
             
             command = "SOCKET_CONNECTED"
             clientsocket.send(command.encode("utf-8"))
@@ -34,7 +34,7 @@ def process_data(data, clientsocket, addr):
             
         
         elif type == 'online_check':
-            requests.get("http://127.0.0.1:5000/online_check", json=data, headers = {'content-type': 'application/json'})
+            requests.get("http://127.0.0.1:5000/api/online_check", json=data, headers = {'content-type': 'application/json'})
     
     except Exception as e:
         logger.warning(e)
@@ -66,7 +66,7 @@ def on_new_client(clientsocket, addr):
 def main():
     """Deze functie start de socket en laat het wachten op binnenkomende verbindingen, zodra er een verbinding binnenkomt geeft ie het een aparte Thread en stuurt ie het door naar functie 'on_new_client'
     """
-    HOST = "192.168.2.38"
+    HOST = "192.168.2.28"
     PORT = 4000
 
     s = socket.socket()
